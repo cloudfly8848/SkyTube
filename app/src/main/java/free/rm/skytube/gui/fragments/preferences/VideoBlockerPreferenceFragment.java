@@ -53,9 +53,16 @@ public class VideoBlockerPreferenceFragment extends PreferenceFragmentCompat {
 		final Preference channelWhitelistPreference = findPreference(getString(R.string.pref_key_channel_whitelist));
 
 		// enable/disable the video blocker
-		enablePreferences(isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
+		enablePreferences(isVideoBlockerLocked(), isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
+
+		findPreference(getString(R.string.pref_key_lock_video_blocker)).setOnPreferenceChangeListener((preference, newValue) -> {
+			enablePreferences((boolean) newValue, isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
+			Toast.makeText(getActivity(), R.string.setting_updated, Toast.LENGTH_LONG).show();
+			return true;
+		});
+
 		findPreference(getString(R.string.pref_key_enable_video_blocker)).setOnPreferenceChangeListener((preference, newValue) -> {
-			enablePreferences((boolean) newValue, channelBlacklistPreference, channelWhitelistPreference);
+			enablePreferences(isVideoBlockerLocked(), (boolean) newValue, channelBlacklistPreference, channelWhitelistPreference);
 			Toast.makeText(getActivity(), R.string.setting_updated, Toast.LENGTH_LONG).show();
 			return true;
 		});
@@ -85,6 +92,12 @@ public class VideoBlockerPreferenceFragment extends PreferenceFragmentCompat {
 		findPreference(getString(R.string.pref_key_dislikes_filter)).setOnPreferenceChangeListener(settingUpdatesPreferenceChange);
 	}
 
+	/**
+	 * @return True if the user wants to lock the video blocker settings, false otherwise.
+	 */
+	private boolean isVideoBlockerLocked() {
+		return SkyTubeApp.getPreferenceManager().getBoolean(getString(R.string.pref_key_lock_video_blocker), false);
+	}
 
 	/**
 	 * @return True if the user wants to use the video blocker, false otherwise.
@@ -96,17 +109,20 @@ public class VideoBlockerPreferenceFragment extends PreferenceFragmentCompat {
 	/**
 	 * Enable/Disable the preferences "views" based on whether the video blocker is enabled or not.
 	 *
+	 * @param lockBlocker                   True means video blocker settings are locked by the user.
 	 * @param enableBlocker                 True means video blocker is enabled by the user.
 	 * @param channelBlacklistPreference    {@link Preference} for channel blacklisting.
 	 * @param channelWhitelistPreference    {@link Preference} for channel whitelisting.
 	 */
-	private void enablePreferences(boolean enableBlocker, Preference channelBlacklistPreference, Preference channelWhitelistPreference) {
-		findPreference(getString(R.string.pref_key_channel_filter_method)).setEnabled(enableBlocker);
-		initChannelFilteringPreferences(enableBlocker, channelBlacklistPreference, channelWhitelistPreference);
-		findPreference(getString(R.string.pref_key_preferred_languages)).setEnabled(enableBlocker);
-		findPreference(getString(R.string.pref_key_lang_detection_video_filtering)).setEnabled(enableBlocker);
-		findPreference(getString(R.string.pref_key_low_views_filter)).setEnabled(enableBlocker);
-		findPreference(getString(R.string.pref_key_dislikes_filter)).setEnabled(enableBlocker);
+	private void enablePreferences(boolean lockBlocker, boolean enableBlocker, Preference channelBlacklistPreference, Preference channelWhitelistPreference) {
+		findPreference(getString(R.string.pref_key_enable_video_blocker)).setEnabled(!lockBlocker);
+		boolean enableEdit = (!lockBlocker) && (enableBlocker);
+		findPreference(getString(R.string.pref_key_channel_filter_method)).setEnabled(enableEdit);
+		initChannelFilteringPreferences(enableEdit, channelBlacklistPreference, channelWhitelistPreference);
+		findPreference(getString(R.string.pref_key_preferred_languages)).setEnabled(enableEdit);
+		findPreference(getString(R.string.pref_key_lang_detection_video_filtering)).setEnabled(enableEdit);
+		findPreference(getString(R.string.pref_key_low_views_filter)).setEnabled(enableEdit);
+		findPreference(getString(R.string.pref_key_dislikes_filter)).setEnabled(enableEdit);
 	}
 
 	/**
