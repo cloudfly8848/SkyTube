@@ -7,9 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -56,68 +54,13 @@ public class VideoBlockerPreferenceFragment extends PreferenceFragmentCompat {
 	public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
 		addPreferencesFromResource(R.xml.preference_video_blocker);
 
-		final CheckBoxPreference lockVideoBlockerPreference = (CheckBoxPreference) findPreference(getString(R.string.pref_key_lock_video_blocker));
 		final Preference channelBlacklistPreference = findPreference(getString(R.string.pref_key_channel_blacklist));
 		final Preference channelWhitelistPreference = findPreference(getString(R.string.pref_key_channel_whitelist));
 
 		// enable/disable the video blocker
 		enablePreferences(isVideoBlockerLocked(), isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
 
-		findPreference(getString(R.string.pref_key_lock_video_blocker)).setOnPreferenceChangeListener((preference, newValue) -> {
-
-			String key = preference.getKey();
-			//Toast.makeText(getActivity(), key, Toast.LENGTH_LONG).show();
-
-			Context context = getContext();
-			AlertDialog.Builder alert = new AlertDialog.Builder(context);
-
-			boolean wantToLock = (boolean) newValue;
-			if (wantToLock) {
-				alert.setTitle("Lock Video Blocker Settings");
-				alert.setMessage("Specify the password:");
-			} else {
-				alert.setTitle("Unlock Video Blocker Settings");
-				alert.setMessage("Check the password:");
-			}
-
-			// Set an EditText view to get user input on password
-			final EditText passInput = new EditText(context);
-			passInput.setTransformationMethod(PasswordTransformationMethod.getInstance());
-			alert.setView(passInput);
-
-			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					String passValue = passInput.getText().toString();
-					passValue = passValue.trim();
-					if (wantToLock) {
-						if (passValue.length() > 0) {
-							enablePreferences(true, isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
-							Toast.makeText(getActivity(), "PASSWORD set to lock!", Toast.LENGTH_LONG).show();
-						} else {
-							lockVideoBlockerPreference.setChecked(false);
-							Toast.makeText(getActivity(), "PASSWORD invalid to set!", Toast.LENGTH_LONG).show();
-						}
-					} else {
-						if (passValue.equalsIgnoreCase("DEBUG")) {
-							enablePreferences(false, isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
-							Toast.makeText(getActivity(), "PASSWORD right to unlock!", Toast.LENGTH_LONG).show();
-						} else {
-							lockVideoBlockerPreference.setChecked(true);
-							Toast.makeText(getActivity(), "PASSWORD not right!!!", Toast.LENGTH_LONG).show();
-						}
-					}
-				}
-			});
-
-			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					lockVideoBlockerPreference.setChecked(! wantToLock);
-				}
-			});
-
-			alert.show();
-			return true;
-		});
+		findPreference(getString(R.string.pref_key_lock_video_blocker)).setOnPreferenceChangeListener(new onLockVideoBlockerPreferenceChangeListener());
 
 		findPreference(getString(R.string.pref_key_enable_video_blocker)).setOnPreferenceChangeListener((preference, newValue) -> {
 			enablePreferences(isVideoBlockerLocked(), (boolean) newValue, channelBlacklistPreference, channelWhitelistPreference);
@@ -162,6 +105,67 @@ public class VideoBlockerPreferenceFragment extends PreferenceFragmentCompat {
 	 */
 	private boolean isVideoBlockerEnabled() {
 		return SkyTubeApp.getPreferenceManager().getBoolean(getString(R.string.pref_key_enable_video_blocker), true);
+	}
+
+	private class onLockVideoBlockerPreferenceChangeListener implements Preference.OnPreferenceChangeListener {
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+			String key = preference.getKey();
+			//Toast.makeText(getActivity(), key, Toast.LENGTH_LONG).show();
+
+			final CheckBoxPreference lockVideoBlockerPreference = (CheckBoxPreference) preference;
+			final Preference channelBlacklistPreference = findPreference(getString(R.string.pref_key_channel_blacklist));
+			final Preference channelWhitelistPreference = findPreference(getString(R.string.pref_key_channel_whitelist));
+
+			Context context = getContext();
+			AlertDialog.Builder alert = new AlertDialog.Builder(context);
+
+			boolean clickToLock = (boolean) newValue;
+			if (clickToLock) {
+				alert.setTitle("Lock Video Blocker Settings");
+				alert.setMessage("Specify the password:");
+			} else {
+				alert.setTitle("Unlock Video Blocker Settings");
+				alert.setMessage("Check the password:");
+			}
+
+			// Set an EditText view to get user input on password
+			final EditText passInput = new EditText(context);
+			passInput.setTransformationMethod(PasswordTransformationMethod.getInstance());
+			alert.setView(passInput);
+
+			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String passValue = passInput.getText().toString();
+					passValue = passValue.trim();
+					if (clickToLock) {
+						if (passValue.length() > 0) {
+							enablePreferences(true, isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
+							Toast.makeText(getActivity(), "PASSWORD set to lock!", Toast.LENGTH_LONG).show();
+						} else {
+							lockVideoBlockerPreference.setChecked(false);
+							Toast.makeText(getActivity(), "PASSWORD invalid to set!", Toast.LENGTH_LONG).show();
+						}
+					} else {
+						if (passValue.equalsIgnoreCase("DEBUG")) {
+							enablePreferences(false, isVideoBlockerEnabled(), channelBlacklistPreference, channelWhitelistPreference);
+							Toast.makeText(getActivity(), "PASSWORD right to unlock!", Toast.LENGTH_LONG).show();
+						} else {
+							lockVideoBlockerPreference.setChecked(true);
+							Toast.makeText(getActivity(), "PASSWORD not right!!!", Toast.LENGTH_LONG).show();
+						}
+					}
+				}
+			});
+
+			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					lockVideoBlockerPreference.setChecked(!clickToLock);
+				}
+			});
+
+			alert.show();
+			return true;
+		};
 	}
 
 	/**
