@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.MenuRes;
 import androidx.annotation.NonNull;
@@ -250,6 +251,10 @@ public class GridViewHolder extends RecyclerView.ViewHolder implements Serializa
 		Menu menu = popupMenu.getMenu();
 		if (!SubscriptionsDb.getSubscriptionsDb().isUserSubscribedToChannel(channel.getId())) {
 			menu.findItem(R.id.subscribe_channel).setVisible(true);
+		}
+		// If VideoBlocker under lock, can not subscribe new channels
+		if ( SkyTubeApp.getPreferenceManager().getBoolean("pref_key_lock_video_blocker", false) ) {
+			menu.findItem(R.id.subscribe_channel).setVisible(false);
 		}
 		popupMenu.setOnMenuItemClickListener(item -> {
 			switch (item.getItemId()) {

@@ -32,6 +32,7 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\""
+            signingConfig signingConfigs.debug
         }
         debug {
 //            buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\"" // prod

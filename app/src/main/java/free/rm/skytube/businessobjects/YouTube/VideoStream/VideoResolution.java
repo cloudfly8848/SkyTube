@@ -19,6 +19,8 @@ package free.rm.skytube.businessobjects.YouTube.VideoStream;
 
 import androidx.preference.ListPreference;
 
+import java.util.Scanner;
+
 /**
  * Video resolution (e.g. 1080p).
  */
@@ -90,7 +92,8 @@ public enum VideoResolution {
 		VideoResolution[] resList = VideoResolution.values();
 
 		for (VideoResolution res : resList) {
-			if (res.verticalPixels == Integer.parseInt(resolution.substring(0, resolution.length()-1)))
+			//if (res.verticalPixels == Integer.parseInt(resolution.substring(0, resolution.length()-1)))
+			if (res.verticalPixels == (new Scanner(resolution).useDelimiter("\\D").nextInt()))
 				return res;
 		}
 

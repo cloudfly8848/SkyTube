@@ -44,6 +44,7 @@ import free.rm.skytube.businessobjects.YouTube.POJOs.CardData;
 import free.rm.skytube.businessobjects.YouTube.POJOs.ChannelView;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeVideo;
 import free.rm.skytube.businessobjects.db.ChannelFilteringDb;
+import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 
 import static free.rm.skytube.app.SkyTubeApp.getStr;
 
@@ -83,7 +84,12 @@ public class VideoBlocker {
 		List<CardData>      filteredVideosList    = new ArrayList<>();
 		final boolean       isChannelBlacklistEnabled = isChannelBlacklistEnabled();
 		final List<String>  blacklistedChannelIds = isChannelBlacklistEnabled  ? ChannelFilteringDb.getChannelFilteringDb().getBlacklistedChannelsIdsList() : null;
-		final List<String>  whitelistedChannelIds = !isChannelBlacklistEnabled ? ChannelFilteringDb.getChannelFilteringDb().getWhitelistedChannelsIdsList() : null;
+		List<String>  whitelistedChannelIds = !isChannelBlacklistEnabled ? ChannelFilteringDb.getChannelFilteringDb().getWhitelistedChannelsIdsList() : null;
+		if (!isChannelBlacklistEnabled) {
+			// subscribed Channels should be whitelisted as well
+			List<String>  subscribedChannelIds = SubscriptionsDb.getSubscriptionsDb().getSubscribedChannelIds();
+			whitelistedChannelIds.addAll(subscribedChannelIds);
+		}
 		// set of user's preferred ISO 639 language codes (regex)
 		final Set<String>   preferredLanguages    = SkyTubeApp.getPreferenceManager().getStringSet(getStr(R.string.pref_key_preferred_languages), defaultPrefLanguages);
 		final BigInteger    minimumVideoViews     = getViewsFilteringValue();
@@ -128,12 +134,16 @@ public class VideoBlocker {
 	public List<ChannelView> filterChannels(List<ChannelView> channels) {
 		List<ChannelView>       filteredChannels    = new ArrayList<>();
 		final boolean           isChannelBlacklistEnabled = isChannelBlacklistEnabled();
-		if (!isChannelBlacklistEnabled) {
+		if (!isVideoBlockerEnabled()) {
 			return channels;
 		}
 		final List<String>      blacklistedChannelIds = isChannelBlacklistEnabled  ? ChannelFilteringDb.getChannelFilteringDb().getBlacklistedChannelsIdsList() : null;
-		final List<String>      whitelistedChannelIds = !isChannelBlacklistEnabled ? ChannelFilteringDb.getChannelFilteringDb().getWhitelistedChannelsIdsList() : null;
-
+		List<String>      whitelistedChannelIds = !isChannelBlacklistEnabled ? ChannelFilteringDb.getChannelFilteringDb().getWhitelistedChannelsIdsList() : null;
+		if (!isChannelBlacklistEnabled) {
+			// subscribed Channels should be whitelisted as well
+			List<String>  subscribedChannelIds = SubscriptionsDb.getSubscriptionsDb().getSubscribedChannelIds();
+			whitelistedChannelIds.addAll(subscribedChannelIds);
+		}
 		for (ChannelView channel : channels) {
 			if ( !((isChannelBlacklistEnabled  &&  filterByBlacklistedChannels(channel.getId(), blacklistedChannelIds))
 					|| (!isChannelBlacklistEnabled  &&  filterByWhitelistedChannels(channel.getId(), whitelistedChannelIds))) ) {

@@ -21,11 +21,13 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 
 import free.rm.skytube.R;
+import free.rm.skytube.app.SkyTubeApp;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetBulkSubscriptionVideosTask;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetChannelVideosTask;
@@ -55,6 +57,13 @@ public class SubscribeButton extends AppCompatButton implements View.OnClickList
 
 	@Override
 	public void onClick(View view) {
+
+		// If VideoBlocker under lock, can not subscribe new channels
+		if ( !isUserSubscribed && SkyTubeApp.getPreferenceManager().getBoolean("pref_key_lock_video_blocker", false) ) {
+			Toast.makeText(getContext(), "No new subscription allowed!!!", Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		// Need to handle externalClickListener first, in case this Button is used by the ChannelBrowserFragment,
 		// which will save the channel's videos to the channel object from the video grid. The channels will then be saved
 		// by the SubscribeToChannelTask.
