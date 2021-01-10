@@ -23,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -108,6 +109,12 @@ public class BlockedVideosDialog extends SkyTubeMaterialDialog {
 			return new ViewHolder(itemLayoutView);
 		}
 
+		/**
+		 * @return True if the user wants to lock the video blocker settings, false otherwise.
+		 */
+		private boolean isVideoBlockerLocked() {
+			return SkyTubeApp.getPreferenceManager().getBoolean("pref_key_lock_video_blocker", false);
+		}
 
 		@Override
 		public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
@@ -116,8 +123,13 @@ public class BlockedVideosDialog extends SkyTubeMaterialDialog {
 			// alternate the row colors
 			holder.row.setBackgroundColor(rowColors[position % 2]);
 			holder.row.setOnClickListener(v -> {
-				// play the video
-				YouTubePlayer.launch(blockedVideo.getVideo(), context);
+				if (isVideoBlockerLocked()) {
+					Toast.makeText(context, "Blocked video locked!!!", Toast.LENGTH_LONG).show();
+				}
+				else {
+					// play the video
+					YouTubePlayer.launch(blockedVideo.getVideo(), context);
+				}
 			});
 
 			// update view holder's data
