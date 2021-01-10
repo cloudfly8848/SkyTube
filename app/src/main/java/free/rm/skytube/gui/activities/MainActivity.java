@@ -31,6 +31,7 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -359,11 +360,23 @@ public class MainActivity extends BaseActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * @return True if the user wants to lock the video blocker settings, false otherwise.
+	 */
+	private boolean isVideoBlockerLocked() {
+		return SkyTubeApp.getPreferenceManager().getBoolean("pref_key_lock_video_blocker", false);
+	}
 
 	/**
 	 * Display the Enter Video URL dialog.
 	 */
 	private void displayEnterVideoUrlDialog() {
+
+		if (isVideoBlockerLocked()) {
+			Toast.makeText(this, "Enter URL locked!!!", Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		final AlertDialog alertDialog = new AlertDialog.Builder(this)
 			.setView(R.layout.dialog_enter_video_url)
 			.setTitle(R.string.enter_video_url)
