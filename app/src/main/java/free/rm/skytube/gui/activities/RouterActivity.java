@@ -39,7 +39,7 @@ public class RouterActivity extends AppCompatActivity {
                 ContentId content = SkyTubeApp.parseUrl(this, textData, true);
                 Log.i("RouterActivity", "Parsed into: " + content);
                 if (content != null) {
-                    SkyTubeApp.openContent(this, content);
+                    //SkyTubeApp.openContent(this, content);
                     finish();
                     return;
                 }
